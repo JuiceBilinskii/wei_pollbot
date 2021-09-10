@@ -8,4 +8,4 @@ from load_all import dp, db
 async def register_user(message: types.Message, state: FSMContext):
     # db.update_user(message.chat.id, 1)
     # await state.update_data({'number_of_replies': 1})
-    await message.answer(f'Echobot yibatb')
+    await message.answer(f'Этот бот предназначен для проведения опроса, результаты которого будут задействованы в дальнейшем анализе.')
