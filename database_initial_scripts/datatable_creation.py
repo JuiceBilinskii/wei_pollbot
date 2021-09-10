@@ -36,8 +36,8 @@ def main():
         );
         """
 
-    create_choices_datatable_query = """
-        CREATE TABLE choices
+    create_answers_datatable_query = """
+        CREATE TABLE answers
         (
             id serial PRIMARY KEY,
             poll_id integer REFERENCES polls(id),
@@ -59,7 +59,7 @@ def main():
             cursor.execute(create_user_datatable_query)
             cursor.execute(create_characters_datatable_query)
             cursor.execute(create_polls_datatable_query)
-            cursor.execute(create_choices_datatable_query)
+            cursor.execute(create_answers_datatable_query)
             connection.commit()
 
     except (Exception, psycopg2.DatabaseError) as error:

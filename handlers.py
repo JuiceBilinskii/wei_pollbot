@@ -46,14 +46,15 @@ async def process_right_character(query: types.CallbackQuery):
 @dp.callback_query_handler(text='7', state=Poll.Polling)
 @dp.callback_query_handler(text='9', state=Poll.Polling)
 async def send_question(query: types.CallbackQuery, state: FSMContext):
+    await query.message.edit_reply_markup(reply_markup=create_empty())
 
     data = await state.get_data()
+
     question_number = data.get('current_question')
 
     message = query.message
     if question_number < data.get('total_questions'):
         text, keyboard = await create_question(state)
-
         await message.answer(text, reply_markup=keyboard)
     else:
         await message.answer('Опрос окончен')
