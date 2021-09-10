@@ -29,15 +29,7 @@ class Database:
         return True
 
 
-class DatabaseQuiries:
-    # UPDATE_USER = (
-    #     "INSERT INTO chat_selections (id, number_of_replies) "
-    #     "VALUES (%s, %s) "
-    #     "ON CONFLICT (id) DO UPDATE "
-    #     "SET number_of_replies = excluded.number_of_replies"
-    # )
-    # GET_NUMBER_OF_REPLIES = "SELECT number_of_replies FROM chat_selections WHERE id=%s"
-
+class DatabaseQueries:
     GET_CHARACTERS = """SELECT * FROM characters"""
 
     def __init__(self, host, database, user, password):
