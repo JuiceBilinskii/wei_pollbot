@@ -84,7 +84,6 @@ class DatabaseQueries:
         connection = self.database.open_connection()
         if connection:
             with connection.cursor() as cursor:
-                print(poll_id, *answers_list[0])
                 args_str = ','.join((cursor.mogrify("(%s, %s, %s, %s)", (poll_id, *x))).decode('utf-8') for x in answers_list)
                 cursor.execute(self.INSERT_ANSWERS + args_str)
                 connection.commit()

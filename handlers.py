@@ -14,7 +14,6 @@ async def register_user(message: types.Message, state: FSMContext):
     await message.answer(f'Этот бот предназначен для проведения опроса, результаты которого будут задействованы в дальнейшем анализе.')
     db.insert_user_query(message.from_user.id, message.from_user.first_name, message.from_user.username)
 
-
 @dp.message_handler(commands=['start_poll'], state=None)
 async def start_poll(message: types.Message, state: FSMContext):
     characters = db.get_characters_query()
@@ -31,17 +30,19 @@ async def start_poll(message: types.Message, state: FSMContext):
     await message.answer('Опрос начат')
 
     await message.answer(f'Данный опрос состоит из {len(character_combinations)} вопросов', reply_markup=create_start_choice())
-    
 
 @dp.callback_query_handler(text='left', state=Poll.Polling)
 @dp.callback_query_handler(text='right', state=Poll.Polling)
-async def process_left_character(query: types.CallbackQuery, state: FSMContext):
+async def process_character_choice(query: types.CallbackQuery, state: FSMContext):
     message = query.message
-    if query.data == 'left':
-        await state.update_data({'inverse': False})
-    else:
-        await state.update_data({'inverse': True})
+    await state.update_data({'inverse': False}) if query.data == 'left' else await state.update_data({'inverse': True})
     await message.edit_reply_markup(reply_markup=create_ratio_choice())
+
+# @dp.callback_query_handler(text='right', state=Poll.Polling)
+# async def process_right_character(query: types.CallbackQuery, state: FSMContext):
+#     message = query.message
+#     await state.update_data({'inverse': True})
+#     await message.edit_reply_markup(reply_markup=create_ratio_choice())
 
 @dp.callback_query_handler(text='start', state=Poll.Polling)
 async def send_first_question(query: types.CallbackQuery, state: FSMContext):
@@ -58,6 +59,7 @@ async def send_first_question(query: types.CallbackQuery, state: FSMContext):
         )
         await query.message.answer(question_text, reply_markup=create_character_choice(character_a[1], character_b[1]))
 
+@dp.callback_query_handler(text='1', state=Poll.Polling)
 @dp.callback_query_handler(text='3', state=Poll.Polling)
 @dp.callback_query_handler(text='5', state=Poll.Polling)
 @dp.callback_query_handler(text='7', state=Poll.Polling)
@@ -68,8 +70,10 @@ async def get_answer_and_send_next_question(query: types.CallbackQuery, state: F
     data = await state.get_data()
 
     character_a, character_b = data.get('characters_combinations')[data.get('current_question')]
-    ratio = 1 / int(query.data) if data.get('inverse') else int(query.data)
-    await state.update_data({'answers': data.get('answers') + [(character_a[0], character_b[0], ratio)]})
+    ratio = 1 / int(query.data) if data.get('inverse', False) else int(query.data)
+
+    answer_pair = (character_a[0], character_b[0], ratio), (character_b[0], character_a[0], 1 / ratio)
+    await state.update_data({'answers': data.get('answers') + [answer_pair]})
     
     await state.update_data({'current_question': data.get('current_question') + 1})
 

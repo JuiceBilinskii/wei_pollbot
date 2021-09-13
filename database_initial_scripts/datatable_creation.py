@@ -30,7 +30,7 @@ def main():
         CREATE TABLE polls
         (
             id serial PRIMARY KEY,
-            user_id bigint REFERENCES users(id),
+            user_id bigint REFERENCES users(id) ON DELETE CASCADE,
             date_completed timestamp default NULL,
             used_in_analysis boolean default FALSE
         );
@@ -40,10 +40,11 @@ def main():
         CREATE TABLE answers
         (
             id serial PRIMARY KEY,
-            poll_id integer REFERENCES polls(id),
-            character_a_id integer REFERENCES characters(id),
-            character_b_id integer REFERENCES characters(id),
-            ratio_a_to_b real NOT NULL
+            poll_id integer REFERENCES polls(id) ON DELETE CASCADE,
+            character_a_id integer REFERENCES characters(id) ON DELETE CASCADE,
+            character_b_id integer REFERENCES characters(id) ON DELETE CASCADE,
+            ratio_a_to_b real NOT NULL,
+            UNIQUE (poll_id, character_a_id, character_b_id)
         );
         """
 
