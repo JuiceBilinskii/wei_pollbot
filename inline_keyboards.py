@@ -11,6 +11,7 @@ def create_start_choice():
     character_choice = InlineKeyboardMarkup(inline_keyboard=[[*row_buttons]])
     return character_choice
 
+
 def create_character_choice(first_character, second_character):
     names_and_data = (
         (first_character, 'left'),
@@ -23,6 +24,7 @@ def create_character_choice(first_character, second_character):
     character_choice = InlineKeyboardMarkup(inline_keyboard=[[*row_buttons]])
     return character_choice
 
+
 def create_ratio_choice():
     ratios = ('3', '5', '7', '9')
 
@@ -30,6 +32,7 @@ def create_ratio_choice():
 
     ratio_choice = InlineKeyboardMarkup(inline_keyboard=[[*row_buttons]])
     return ratio_choice
+
 
 def create_used_in_analysis_choice():
     names_and_data = (
@@ -41,6 +44,7 @@ def create_used_in_analysis_choice():
 
     character_choice = InlineKeyboardMarkup(inline_keyboard=[[*row_buttons]])
     return character_choice
+
 
 def create_empty():
     ratio_choice = InlineKeyboardMarkup()

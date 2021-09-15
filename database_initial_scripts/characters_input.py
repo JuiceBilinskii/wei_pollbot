@@ -4,14 +4,14 @@ import json
 
 
 def main():
-    with open('characters.json', 'r', encoding='utf8') as file:
+    with open('../characters.json', 'r', encoding='utf8') as file:
         characters = json.load(file)
     
     # for character in characters['characters']:
     #     print(character)
     
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read('../config.ini')
     db_config = config['PostgreSQL']
 
     insert_character_query = """

@@ -55,7 +55,7 @@ def main():
             user=db_config['user'],
             password=db_config['password'],
         )
-        print('Successfull connection')
+        print('Successful connection')
         with connection.cursor() as cursor:
             cursor.execute(create_user_datatable_query)
             cursor.execute(create_characters_datatable_query)
@@ -69,6 +69,7 @@ def main():
         if connection:
             connection.close()
             print('Close connection')
+
 
 if __name__ == '__main__':
     main()

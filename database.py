@@ -7,24 +7,22 @@ class Database:
         self.database = database
         self.user = user
         self.password = password
+
+        self.connection = None
     
     def open_connection(self):
-        try:
-            conn = psycopg2.connect(
-                host=self.host,
-                database=self.database,
-                user=self.user,
-                password=self.password,
-            )
-            print('Database connection opened.')
-            return conn
-        except (Exception, psycopg2.DatabaseError) as error:
-            print(error)
-            return False
+        self.connection = psycopg2.connect(
+            host=self.host,
+            database=self.database,
+            user=self.user,
+            password=self.password,
+        )
+        print('Database connection opened.')
+        return True
     
-    def close_connection(self, conn):
-        if conn:
-            conn.close()
+    def close_connection(self):
+        if self.connection:
+            self.connection.close()
             print('Database connection closed.')
         return True
 
@@ -52,40 +50,32 @@ class DatabaseQueries:
     def __init__(self, host, database, user, password):
         self.database = Database(host, database, user, password)
 
-    def get_characters_query(self):
-        connection = self.database.open_connection()
-        if connection:
-            with connection.cursor() as cursor:
+    def select_characters(self):
+        if self.database.open_connection():
+            with self.database.connection.cursor() as cursor:
                 cursor.execute(self.GET_CHARACTERS)
                 result = cursor.fetchall()
-        self.database.close_connection(connection)
+        self.database.close_connection()
         return result
     
-    def insert_user_query(self, id, first_name, username=None):
-        connection = self.database.open_connection()
-        if connection:
-            with connection.cursor() as cursor:
-                cursor.execute(self.INSERT_USER_WITH_USERNAME, (id, first_name, username))
-                connection.commit()
-        self.database.close_connection(connection)
+    def insert_user(self, _id, first_name, username=None):
+        if self.database.open_connection():
+            with self.database.connection.cursor() as cursor:
+                cursor.execute(self.INSERT_USER_WITH_USERNAME, (_id, first_name, username))
+                self.database.connection.commit()
+        self.database.close_connection()
         return True
     
-    def insert_poll_query(self, user_id, date_completed, used_in_analysis):
-        connection = self.database.open_connection()
-        if connection:
-            with connection.cursor() as cursor:
-                cursor.execute(self.INSERT_POLL, (user_id, date_completed, used_in_analysis))
+    def insert_poll_and_answers(self, poll_information, answers_list):
+        if self.database.open_connection():
+            with self.database.connection.cursor() as cursor:
+                cursor.execute(self.INSERT_POLL, poll_information)
                 poll_id = cursor.fetchone()[0]
-                connection.commit()
-        self.database.close_connection(connection)
-        return poll_id
-    
-    def inserts_answers_query(self, poll_id, answers_list):
-        connection = self.database.open_connection()
-        if connection:
-            with connection.cursor() as cursor:
-                args_str = ','.join((cursor.mogrify("(%s, %s, %s, %s)", (poll_id, *x))).decode('utf-8') for x in answers_list)
+
+                args = (cursor.mogrify("(%s, %s, %s, %s)", (poll_id, *x)).decode('utf-8') for x in answers_list)
+                args_str = ','.join(args)
+
                 cursor.execute(self.INSERT_ANSWERS + args_str)
-                connection.commit()
-        self.database.close_connection(connection)
+                self.database.connection.commit()
+        self.database.close_connection()
         return True
