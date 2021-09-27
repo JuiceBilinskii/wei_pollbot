@@ -4,7 +4,7 @@ import configparser
 
 def main():
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read('../config.ini')
     db_config = config['PostgreSQL']
 
     create_user_datatable_query = """
