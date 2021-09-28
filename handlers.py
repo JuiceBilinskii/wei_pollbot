@@ -101,7 +101,7 @@ async def process_analysis_usage(query: types.CallbackQuery, state: FSMContext):
     await query.message.edit_reply_markup(reply_markup=create_empty())
     data = await state.get_data()
 
-    used_in_analysis = True if query.data == 'yes' else False
+    used_in_analysis = True if query.data == 'yes' and db.get_user_analysis_usage(query.from_user.id) else False
 
     poll_information = query.from_user.id, datetime.datetime.today(), used_in_analysis
 
