@@ -19,7 +19,8 @@ class DatabaseConnection:
 
 
 class DatabaseQueries:
-    GET_CHARACTERS = """SELECT * FROM characters"""
+    SELECT_CHARACTERS = """SELECT * FROM characters"""
+
     INSERT_USER_WITH_USERNAME = (
         "INSERT INTO users (id, first_name, username) "
         "VALUES (%s, %s, %s) "
@@ -31,7 +32,10 @@ class DatabaseQueries:
         "INSERT INTO polls (user_id, date_completed, used_in_analysis) "
         "VALUES (%s, %s, %s) RETURNING id;"
     )
+
     INSERT_ANSWERS = "INSERT INTO answers (poll_id, character_a_id, character_b_id, ratio_a_to_b) VALUES "
+
+    SELECT_POLLS_FROM_USER_WITH_ANALYSIS_USAGE = "SELECT * FROM polls WHERE user_id = %s AND used_in_analysis = TRUE"
 
     def __init__(self, host, database, user, password):
         self.connect_information = {
@@ -44,9 +48,9 @@ class DatabaseQueries:
     def select_characters(self):
         with DatabaseConnection(**self.connect_information) as connection:
             with connection.cursor() as cursor:
-                cursor.execute(self.GET_CHARACTERS)
+                cursor.execute(self.SELECT_CHARACTERS)
                 result = cursor.fetchall()
-        return result
+                return result
     
     def insert_user(self, _id, first_name, username=None):
         with DatabaseConnection(**self.connect_information) as connection:
@@ -65,3 +69,10 @@ class DatabaseQueries:
 
                 cursor.execute(self.INSERT_ANSWERS + args_str)
                 connection.commit()
+
+    def get_user_analysis_usage(self, user_id):
+        with DatabaseConnection(**self.connect_information) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(self.SELECT_POLLS_FROM_USER_WITH_ANALYSIS_USAGE, user_id)
+                result = cursor.fetchone()
+                return True if result is not None else False
