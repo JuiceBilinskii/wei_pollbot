@@ -22,7 +22,7 @@ def main():
             id serial PRIMARY KEY,
             name varchar(150) NOT NULL,
             height integer NOT NULL,
-            short_description varchar(250) NOT NULL
+            short_description varchar(1000) NOT NULL
         );
         """
 
@@ -30,9 +30,10 @@ def main():
         CREATE TABLE polls
         (
             id serial PRIMARY KEY,
-            user_id bigint REFERENCES users(id) ON DELETE CASCADE,
-            date_completed timestamp default NULL,
-            used_in_analysis boolean default FALSE
+            user_id bigint NOT NULL,
+            date_completed timestamp NOT NULL,
+            used_in_analysis boolean NOT NULL default FALSE,
+            CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
         );
         """
 
@@ -40,11 +41,14 @@ def main():
         CREATE TABLE answers
         (
             id serial PRIMARY KEY,
-            poll_id integer REFERENCES polls(id) ON DELETE CASCADE,
-            character_a_id integer REFERENCES characters(id) ON DELETE CASCADE,
-            character_b_id integer REFERENCES characters(id) ON DELETE CASCADE,
+            poll_id integer,
+            character_a_id integer,
+            character_b_id integer,
             ratio_a_to_b real NOT NULL,
-            UNIQUE (poll_id, character_a_id, character_b_id)
+            UNIQUE (poll_id, character_a_id, character_b_id),
+            CONSTRAINT fk_poll FOREIGN KEY(poll_id) REFERENCES polls(id) ON DELETE CASCADE,
+            CONSTRAINT fk_character_a FOREIGN KEY(character_a_id) REFERENCES characters(id) ON DELETE CASCADE,
+            CONSTRAINT fk_character_b FOREIGN KEY(character_b_id) REFERENCES characters(id) ON DELETE CASCADE
         );
         """
 

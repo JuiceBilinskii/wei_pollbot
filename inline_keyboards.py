@@ -18,26 +18,30 @@ def create_character_choice(first_character, second_character):
         ('Равны', '1'),
         (second_character, 'right'),
     )
+    terminate = ('Прервать', 'stop')
 
-    row_buttons = (InlineKeyboardButton(text, callback_data=data) for text, data in names_and_data)
+    first_row = (InlineKeyboardButton(text, callback_data=data) for text, data in names_and_data)
+    second_row = InlineKeyboardButton(terminate[0], callback_data=terminate[1])
 
-    character_choice = InlineKeyboardMarkup(inline_keyboard=[[*row_buttons]])
+    character_choice = InlineKeyboardMarkup(inline_keyboard=[[*first_row], [second_row]])
     return character_choice
 
 
 def create_ratio_choice():
     ratios = ('3', '5', '7', '9')
+    cancel = ('Отменить', 'cancel')
 
-    row_buttons = (InlineKeyboardButton(ratio, callback_data=ratio) for ratio in ratios)
+    first_row = (InlineKeyboardButton(ratio, callback_data=ratio) for ratio in ratios)
+    second_row = InlineKeyboardButton(cancel[0], callback_data=cancel[1])
 
-    ratio_choice = InlineKeyboardMarkup(inline_keyboard=[[*row_buttons]])
+    ratio_choice = InlineKeyboardMarkup(inline_keyboard=[[*first_row], [second_row]])
     return ratio_choice
 
 
-def create_used_in_analysis_choice():
+def create_analysis_usage_choice():
     names_and_data = (
-        ('Использовать в анализе', 'yes'),
-        ('Не использовать в анализе', 'no'),
+        ('Да', 'yes'),
+        ('нет', 'no'),
     )
 
     row_buttons = (InlineKeyboardButton(text, callback_data=data) for text, data in names_and_data)
