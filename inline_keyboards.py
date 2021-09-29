@@ -41,7 +41,7 @@ def create_ratio_choice():
 def create_analysis_usage_choice():
     names_and_data = (
         ('Да', 'yes'),
-        ('нет', 'no'),
+        ('Нет', 'no'),
     )
 
     row_buttons = (InlineKeyboardButton(text, callback_data=data) for text, data in names_and_data)

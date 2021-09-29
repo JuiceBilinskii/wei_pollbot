@@ -73,6 +73,7 @@ class DatabaseQueries:
     def get_user_analysis_usage(self, user_id):
         with DatabaseConnection(**self.connect_information) as connection:
             with connection.cursor() as cursor:
-                cursor.execute(self.SELECT_POLLS_FROM_USER_WITH_ANALYSIS_USAGE, user_id)
+                cursor.execute(self.SELECT_POLLS_FROM_USER_WITH_ANALYSIS_USAGE, (user_id, ))
                 result = cursor.fetchone()
+
                 return True if result is not None else False
