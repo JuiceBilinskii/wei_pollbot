@@ -29,7 +29,8 @@ def main():
         id serial PRIMARY KEY,
         user_id bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         date_completed timestamp NOT NULL,
-        analysis_usage boolean NOT NULL default FALSE
+        analysis_usage boolean NOT NULL default FALSE,
+        concordance_factor real NOT NULL
     );
     
     CREATE TABLE answers
