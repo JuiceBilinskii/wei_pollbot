@@ -12,7 +12,7 @@ def main():
     db_config = config['PostgreSQL']
 
     insert_character_query = """
-    INSERT INTO characters (name, height, short_description) VALUES (%s, %s, %s);
+    INSERT INTO characters (name, height, short_description, url) VALUES (%s, %s, %s, %s);
     """
 
     try:
@@ -27,7 +27,7 @@ def main():
             for character in characters['characters']:
                 cursor.execute(
                     insert_character_query,
-                    (character['name'], character['height'], character['short_description']))
+                    (character['name'], character['height'], character['short_description'], character['url']))
             connection.commit()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)

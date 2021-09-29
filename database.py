@@ -29,13 +29,13 @@ class DatabaseQueries:
     )
 
     INSERT_POLL = (
-        "INSERT INTO polls (user_id, date_completed, used_in_analysis) "
+        "INSERT INTO polls (user_id, date_completed, analysis_usage) "
         "VALUES (%s, %s, %s) RETURNING id;"
     )
 
     INSERT_ANSWERS = "INSERT INTO answers (poll_id, character_a_id, character_b_id, ratio_a_to_b) VALUES "
 
-    SELECT_POLLS_FROM_USER_WITH_ANALYSIS_USAGE = "SELECT * FROM polls WHERE user_id = %s AND used_in_analysis = TRUE"
+    SELECT_POLLS_FROM_USER_WITH_ANALYSIS_USAGE = "SELECT * FROM polls WHERE user_id = %s AND analysis_usage = TRUE"
 
     def __init__(self, host, database, user, password):
         self.connect_information = {
