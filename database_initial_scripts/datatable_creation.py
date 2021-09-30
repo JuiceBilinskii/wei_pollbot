@@ -41,53 +41,37 @@ def main():
         character_b_id integer NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
         ratio_a_to_b real NOT NULL,
         UNIQUE (poll_id, character_a_id, character_b_id)
+    );
+    
+    CREATE TABLE average_characters_rating
+    (
+        id serial PRIMARY KEY,
+        poll_id integer NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
+        character_id integer NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+        rating real NOT NULL
     )
     """
 
-    # create_user_datatable_query = """
-    #     CREATE TABLE users
-    #     (
-    #         id bigint PRIMARY KEY,
-    #         first_name varchar(100) NOT NULL,
-    #         username varchar(100) default NULL
-    #     );
-    #     """
-    #
-    # create_characters_datatable_query = """
-    #     CREATE TABLE characters
-    #     (
-    #         id serial PRIMARY KEY,
-    #         name varchar(150) NOT NULL,
-    #         height integer NOT NULL,
-    #         short_description varchar(1000) NOT NULL
-    #     );
-    #     """
-    #
-    # create_polls_datatable_query = """
-    #     CREATE TABLE polls
-    #     (
-    #         id serial PRIMARY KEY,
-    #         user_id bigint NOT NULL,
-    #         date_completed timestamp NOT NULL,
-    #         used_in_analysis boolean NOT NULL default FALSE,
-    #         CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-    #     );
-    #     """
-    #
-    # create_answers_datatable_query = """
-    #     CREATE TABLE answers
-    #     (
-    #         id serial PRIMARY KEY,
-    #         poll_id integer,
-    #         character_a_id integer,
-    #         character_b_id integer,
-    #         ratio_a_to_b real NOT NULL,
-    #         UNIQUE (poll_id, character_a_id, character_b_id),
-    #         CONSTRAINT fk_poll FOREIGN KEY(poll_id) REFERENCES polls(id) ON DELETE CASCADE,
-    #         CONSTRAINT fk_character_a FOREIGN KEY(character_a_id) REFERENCES characters(id) ON DELETE CASCADE,
-    #         CONSTRAINT fk_character_b FOREIGN KEY(character_b_id) REFERENCES characters(id) ON DELETE CASCADE
-    #     );
-    #     """
+    average_characters_rating_create_query = """
+    CREATE TABLE average_characters_rating
+    (
+        id serial PRIMARY KEY,
+        poll_id integer NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
+        character_id integer NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+        rating real NOT NULL
+    )
+    """
+
+    polls_create_query = """
+    CREATE TABLE polls
+    (
+        id serial PRIMARY KEY,
+        user_id bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        date_completed timestamp NOT NULL,
+        analysis_usage boolean NOT NULL default FALSE,
+        concordance_factor real NOT NULL
+    );
+    """
 
     try:
         connection = psycopg2.connect(

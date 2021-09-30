@@ -10,6 +10,7 @@ from inline_keyboards import (create_character_choice, create_ratio_choice, crea
                               create_analysis_usage_choice)
 from load_all import dp, db
 from states import Poll
+from poll_results_calculator import PollResultsCalculator
 
 
 @dp.message_handler(CommandStart())
@@ -31,6 +32,7 @@ async def start_poll(message: types.Message, state: FSMContext):
 
     await Poll.Polling.set()
 
+    await state.update_data({'characters': characters})
     await state.update_data({'characters_combinations': character_combinations})
     await state.update_data({'current_question': 0})
     await state.update_data({'total_questions': len(character_combinations)})
@@ -72,7 +74,6 @@ def create_question_text(data):
 @dp.callback_query_handler(lambda c: c.data in ('1', '2', '3', '4', '5', '6', '7', '8', '9'), state=Poll.Polling)
 async def get_answer_and_send_next_question(query: types.CallbackQuery, state: FSMContext):
     await query.message.edit_reply_markup(reply_markup=create_empty())
-    # await query.message.edit_text(query.message.text + '\n\nОпа')
 
     data = await state.get_data()
 
@@ -89,10 +90,24 @@ async def get_answer_and_send_next_question(query: types.CallbackQuery, state: F
         question_text, character_a, character_b = create_question_text(data)
         await query.message.answer(question_text, reply_markup=create_character_choice(character_a[1], character_b[1]))
     else:
-        final_text = (f'Опрос окончен. Теперь вам нужно решить, использовать ли ответы в дальнейшем анализе. '
-                      f'Если вы вообще не понимали, что вы только что тыкали, то, пожалуйста, выберите "Нет". '
-                      f'Если же вы настроены серьезно, то отвечайте "Да".')
-        await query.message.answer(final_text, reply_markup=create_analysis_usage_choice())
+        answers = data.get('answers')
+        characters_id = [character[0] for character in data.get('characters')]
+        calculator = PollResultsCalculator()
+        average_characters_rating, concordance_factor = calculator.average_characters_rating_and_concordance_factor(
+            answers,
+            characters_id)
+
+        await state.update_data({'average_characters_rating': average_characters_rating,
+                                 'concordance_factor': concordance_factor})
+
+        message = 'Средние оценки по результатам опроса:\n'
+        for character_id, average_rating in average_characters_rating.items():
+            message += f'{character_id}: {average_rating * 100}\n'
+        message += f'Кэффициент согласованности: {concordance_factor}\n'
+        message += (f'Опрос окончен. Теперь вам нужно решить, использовать ли ответы в дальнейшем анализе. '
+                    f'Если вы вообще не понимали, что вы только что тыкали, то, пожалуйста, выберите "Нет". '
+                    f'Если же вы настроены серьезно, то отвечайте "Да".')
+        await query.message.answer(message, reply_markup=create_analysis_usage_choice())
 
 
 @dp.callback_query_handler(text='yes', state=Poll.Polling)
@@ -103,9 +118,9 @@ async def process_analysis_usage(query: types.CallbackQuery, state: FSMContext):
 
     analysis_usage = True if query.data == 'yes' and not db.get_user_analysis_usage(query.from_user.id) else False
 
-    poll_information = query.from_user.id, datetime.datetime.today(), analysis_usage
+    poll_information = query.from_user.id, datetime.datetime.today(), analysis_usage, data.get('concordance_factor')
 
-    db.insert_poll_and_answers(poll_information, data.get('answers'))
+    db.insert_poll_answers_and_rating(poll_information, data.get('answers'), data.get('average_characters_rating'))
 
     await state.finish()
 
