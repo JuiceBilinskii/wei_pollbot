@@ -19,7 +19,7 @@ class PollResultsCalculator:
         measures_of_consistency = self.__calculate_measures_of_consistency(ratio_matrix, average_characters_rating)
         concordance_factor = self.__calculate_concordance_factor(measures_of_consistency)
 
-        return average_characters_rating, concordance_factor
+        return average_characters_rating, round(concordance_factor, 4)
 
     def __create_ratio_matrix(self,
                               answers: list[tuple[int, int, float]],
@@ -59,7 +59,8 @@ class PollResultsCalculator:
 
         for character_id, sub_dict in normalized_ratio_matrix.items():
             ratios = sub_dict.values()
-            average_characters_rating[character_id] = sum(ratios) / len(ratios)
+            rating = round(sum(ratios) / len(ratios), 4)
+            average_characters_rating[character_id] = rating
         return average_characters_rating
 
     def __calculate_measures_of_consistency(self,

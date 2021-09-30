@@ -10,7 +10,7 @@ from inline_keyboards import (create_character_choice, create_ratio_choice, crea
                               create_analysis_usage_choice)
 from load_all import dp, db
 from states import Poll
-from poll_results_calculator import PollResultsCalculator
+from misc.poll_results_calculator import PollResultsCalculator
 
 
 @dp.message_handler(CommandStart())
@@ -63,7 +63,7 @@ async def process_character_choice(query: types.CallbackQuery, state: FSMContext
 def create_question_text(data):
     character_a, character_b = data.get('characters_combinations')[data.get('current_question')]
     return (
-        f'{data.get("current_question") + 1}/{data.get("total_questions")}\n\n'
+        f'Пара {data.get("current_question") + 1}/{data.get("total_questions")}\n\n'
         f'{character_a[1]} - {character_a[2]}\n'
         f'{character_a[3]}\n\n'
         f'{character_b[1]} - {character_b[2]}\n'
@@ -78,7 +78,15 @@ async def get_answer_and_send_next_question(query: types.CallbackQuery, state: F
     data = await state.get_data()
 
     character_a, character_b = data.get('characters_combinations')[data.get('current_question')]
-    ratio = 1 / int(query.data) if data.get('inverse', False) else int(query.data)
+
+    if data.get('inverse', False):
+        ratio = 1 / int(query.data)
+        previous_message_text = query.message.text + f'\n_______\nВы выбрали {query.data} в пользу {character_b[1]}'
+    else:
+        ratio = int(query.data)
+        previous_message_text = query.message.text + f'\n_______\nВы выбрали {query.data} в пользу {character_a[1]}'
+
+    await query.message.edit_text(previous_message_text)
 
     answer_pair = (character_a[0], character_b[0], ratio), (character_b[0], character_a[0], 1 / ratio)
 
@@ -103,7 +111,7 @@ async def get_answer_and_send_next_question(query: types.CallbackQuery, state: F
         message = 'Средние оценки по результатам опроса:\n'
         for character_id, average_rating in average_characters_rating.items():
             message += f'{character_id}: {average_rating * 100}\n'
-        message += f'Кэффициент согласованности: {concordance_factor}\n'
+        message += f'\nПредварительный коэффициент согласованности: {concordance_factor}\n\n'
         message += (f'Опрос окончен. Теперь вам нужно решить, использовать ли ответы в дальнейшем анализе. '
                     f'Если вы вообще не понимали, что вы только что тыкали, то, пожалуйста, выберите "Нет". '
                     f'Если же вы настроены серьезно, то отвечайте "Да".')
