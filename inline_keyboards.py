@@ -28,13 +28,14 @@ def create_character_choice(first_character, second_character):
 
 
 def create_ratio_choice():
-    ratios = ('3', '5', '7', '9')
+    ratios = ('2', '3', '4', '5'), ('6', '7', '8', '9')
     cancel = ('Отменить', 'cancel')
 
-    first_row = (InlineKeyboardButton(ratio, callback_data=ratio) for ratio in ratios)
-    second_row = InlineKeyboardButton(cancel[0], callback_data=cancel[1])
+    first_row = (InlineKeyboardButton(ratio, callback_data=ratio) for ratio in ratios[0])
+    second_row = (InlineKeyboardButton(ratio, callback_data=ratio) for ratio in ratios[1])
+    third_row = InlineKeyboardButton(cancel[0], callback_data=cancel[1])
 
-    ratio_choice = InlineKeyboardMarkup(inline_keyboard=[[*first_row], [second_row]])
+    ratio_choice = InlineKeyboardMarkup(inline_keyboard=[[*first_row], [*second_row], [third_row]])
     return ratio_choice
 
 
