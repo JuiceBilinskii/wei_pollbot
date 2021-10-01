@@ -3,9 +3,9 @@ import math
 
 class PollResultsCalculator:
     """Class which performs calculating of average characters rating and concordance factor for it"""
-    def average_characters_rating_and_concordance_factor(self,
-                                                         answers: list[tuple[int, int, float]],
-                                                         characters_id: list[int]) -> (dict[int, float], float):
+    def calculate_poll_results(self,
+                               answers: list[tuple[int, int, float]],
+                               characters_id: list[int]) -> (dict[int, float], float):
         """Performs calculation of final result of poll
 
         :param answers: list of tuples(character_a_id, character_b_id, ratio_a_to_b)

@@ -59,7 +59,8 @@ async def start_poll(message: types.Message, state: FSMContext):
         question_text, character_a, character_b = create_question_text(data)
 
         await message.answer(question_text,
-                             reply_markup=create_character_choice(character_a['name'], character_b['name']))
+                             reply_markup=create_character_choice(character_a['name'], character_b['name']),
+                             disable_web_page_preview=True)
 
 
 @dp.callback_query_handler(text='left', state=Poll.Polling)
@@ -101,7 +102,7 @@ async def get_answer_and_send_next_question(query: types.CallbackQuery, state: F
 
     previous_message_text = query.message.text + added_text
 
-    await query.message.edit_text(previous_message_text)
+    await query.message.edit_text(previous_message_text, disable_web_page_preview=True)
 
     answer_pair = (character_a['id'], character_b['id'], ratio), (character_b['id'], character_a['id'], 1 / ratio)
 
@@ -112,14 +113,13 @@ async def get_answer_and_send_next_question(query: types.CallbackQuery, state: F
     if data.get('current_question') < data.get('total_questions'):
         question_text, character_a, character_b = create_question_text(data)
         await query.message.answer(question_text,
-                                   reply_markup=create_character_choice(character_a['name'], character_b['name']))
+                                   reply_markup=create_character_choice(character_a['name'], character_b['name']),
+                                   disable_web_page_preview=True)
     else:
         answers = data.get('answers')
         characters_id = data.get('characters').keys()
         calculator = PollResultsCalculator()
-        average_characters_rating, concordance_factor = calculator.average_characters_rating_and_concordance_factor(
-            answers,
-            characters_id)
+        average_characters_rating, concordance_factor = calculator.calculate_poll_results(answers, characters_id)
 
         await state.update_data({'average_characters_rating': average_characters_rating,
                                  'concordance_factor': concordance_factor})
