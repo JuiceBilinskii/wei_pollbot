@@ -92,17 +92,7 @@ async def get_answer_and_send_next_question(query: types.CallbackQuery, state: F
 
     character_a, character_b = data.get('characters_combinations')[data.get('current_question')]
 
-    if data.get('inverse', False):
-        ratio = 1 / int(query.data)
-        added_text = f'\n_______\nВы выбрали {query.data} в пользу {character_b["name"]}'
-
-    else:
-        ratio = int(query.data)
-        added_text = f'\n_______\nВы выбрали {query.data} в пользу {character_a["name"]}'
-
-    previous_message_text = query.message.text + added_text
-
-    await query.message.edit_text(previous_message_text, disable_web_page_preview=True)
+    ratio = 1 / int(query.data) if data.get('inverse', False) else int(query.data)
 
     answer_pair = (character_a['id'], character_b['id'], ratio), (character_b['id'], character_a['id'], 1 / ratio)
 
@@ -112,9 +102,9 @@ async def get_answer_and_send_next_question(query: types.CallbackQuery, state: F
     data = await state.get_data()
     if data.get('current_question') < data.get('total_questions'):
         question_text, character_a, character_b = create_question_text(data)
-        await query.message.answer(question_text,
-                                   reply_markup=create_character_choice(character_a['name'], character_b['name']),
-                                   disable_web_page_preview=True)
+        await query.message.edit_text(question_text,
+                                      reply_markup=create_character_choice(character_a['name'], character_b['name']),
+                                      disable_web_page_preview=True)
     else:
         answers = data.get('answers')
         characters_id = data.get('characters').keys()
@@ -161,4 +151,5 @@ async def process_stop_poll(query: types.CallbackQuery, state: FSMContext):
 async def process_choice_cancel(query: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character_a, character_b = data.get('characters_combinations')[data.get('current_question')]
-    await query.message.edit_reply_markup(reply_markup=create_character_choice(character_a[1], character_b[1]))
+    await query.message.edit_reply_markup(reply_markup=create_character_choice(character_a['name'],
+                                                                               character_b['name']))
