@@ -18,9 +18,9 @@ async def register_user(message: types.Message):
     db.insert_user(message.from_user.id, message.from_user.first_name, message.from_user.username)
     start_text = (f'Теперь можете приступить к прохождению опроса. Вам предстоит выполнить ряд '
                   f'попарных сравнений между персонажами на предмет оценки их относительной силы. '
-                  f'Естественно подразумевается, что сравнивается не физическая сила в прямом '
-                  f'смысле, а берется во внимание ряд менее конкретных качеств и просто степень влияния '
-                  f'персонажей на сюжет.')
+                  f'Подразумевается, что сравнивается не только физическая сила в самом непосредственном '
+                  f'смысле, а берется во внимание и ряд других качеств, например, степень влияния '
+                  f'персонажа на сюжет.')
     await message.answer(start_text)
 
 
@@ -146,6 +146,7 @@ async def process_analysis_usage(query: types.CallbackQuery, state: FSMContext):
 
     db.insert_poll_answers_and_rating(poll_information, data.get('answers'), data.get('average_characters_rating'))
 
+    await query.message.answer('Спасибо за участие в опросе.')
     await state.finish()
 
 
