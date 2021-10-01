@@ -19,7 +19,7 @@ class DatabaseConnection:
 
 
 class DatabaseQueries:
-    SELECT_CHARACTERS = """SELECT * FROM characters"""
+    SELECT_CHARACTERS = """SELECT * FROM characters ORDER BY id ASC"""
 
     INSERT_USER_WITH_USERNAME = (
         "INSERT INTO users (id, first_name, username) "
