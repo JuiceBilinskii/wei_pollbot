@@ -26,13 +26,21 @@ async def register_user(message: types.Message):
 
 @dp.message_handler(commands=['start_poll'], state=None)
 async def start_poll(message: types.Message, state: FSMContext):
-    characters = db.select_characters()
-    character_combinations = list(combinations(characters, 2))
+    # characters_tuple = db.select_characters()
+    characters_dict = {character_tuple[0]: {
+        'id': character_tuple[0],
+        'name': character_tuple[1],
+        'height': character_tuple[2],
+        'short_description': character_tuple[3],
+        'url': character_tuple[4],
+    } for character_tuple in db.select_characters()}
+
+    character_combinations = list(combinations(characters_dict.values(), 2))
     random.shuffle(character_combinations)
 
     await Poll.Polling.set()
 
-    await state.update_data({'characters': characters})
+    await state.update_data({'characters': characters_dict})
     await state.update_data({'characters_combinations': character_combinations})
     await state.update_data({'current_question': 0})
     await state.update_data({'total_questions': len(character_combinations)})
@@ -43,13 +51,15 @@ async def start_poll(message: types.Message, state: FSMContext):
     data = await state.get_data()
     if data.get('current_question') < data.get('total_questions'):
         diagonal_answers = []
-        for character in characters:
-            diagonal_answers.append((character[0], character[0], 1))
+        for character_id in characters_dict:
+            diagonal_answers.append((character_id, character_id, 1))
 
         await state.update_data({'answers': data.get('answers') + [*diagonal_answers]})
 
         question_text, character_a, character_b = create_question_text(data)
-        await message.answer(question_text, reply_markup=create_character_choice(character_a[1], character_b[1]))
+
+        await message.answer(question_text,
+                             reply_markup=create_character_choice(character_a['name'], character_b['name']))
 
 
 @dp.callback_query_handler(text='left', state=Poll.Polling)
@@ -64,10 +74,12 @@ def create_question_text(data):
     character_a, character_b = data.get('characters_combinations')[data.get('current_question')]
     return (
         f'Пара {data.get("current_question") + 1}/{data.get("total_questions")}\n\n'
-        f'{character_a[1]} - {character_a[2]}\n'
-        f'{character_a[3]}\n\n'
-        f'{character_b[1]} - {character_b[2]}\n'
-        f'{character_b[3]}'
+        f'{character_a["name"]} - {character_a["height"]} см\n'
+        f'{character_a["url"]}\n'
+        f'{character_a["short_description"]}\n\n'
+        f'{character_b["name"]} - {character_b["height"]} см\n'
+        f'{character_a["url"]}\n'
+        f'{character_b["short_description"]}'
     ), character_a, character_b
 
 
@@ -81,14 +93,17 @@ async def get_answer_and_send_next_question(query: types.CallbackQuery, state: F
 
     if data.get('inverse', False):
         ratio = 1 / int(query.data)
-        previous_message_text = query.message.text + f'\n_______\nВы выбрали {query.data} в пользу {character_b[1]}'
+        added_text = f'\n_______\nВы выбрали {query.data} в пользу {character_b["name"]}'
+
     else:
         ratio = int(query.data)
-        previous_message_text = query.message.text + f'\n_______\nВы выбрали {query.data} в пользу {character_a[1]}'
+        added_text = f'\n_______\nВы выбрали {query.data} в пользу {character_a["name"]}'
+
+    previous_message_text = query.message.text + added_text
 
     await query.message.edit_text(previous_message_text)
 
-    answer_pair = (character_a[0], character_b[0], ratio), (character_b[0], character_a[0], 1 / ratio)
+    answer_pair = (character_a['id'], character_b['id'], ratio), (character_b['id'], character_a['id'], 1 / ratio)
 
     await state.update_data({'answers': data.get('answers') + [*answer_pair]})
     await state.update_data({'current_question': data.get('current_question') + 1})
@@ -96,10 +111,11 @@ async def get_answer_and_send_next_question(query: types.CallbackQuery, state: F
     data = await state.get_data()
     if data.get('current_question') < data.get('total_questions'):
         question_text, character_a, character_b = create_question_text(data)
-        await query.message.answer(question_text, reply_markup=create_character_choice(character_a[1], character_b[1]))
+        await query.message.answer(question_text,
+                                   reply_markup=create_character_choice(character_a['name'], character_b['name']))
     else:
         answers = data.get('answers')
-        characters_id = [character[0] for character in data.get('characters')]
+        characters_id = data.get('characters').keys()
         calculator = PollResultsCalculator()
         average_characters_rating, concordance_factor = calculator.average_characters_rating_and_concordance_factor(
             answers,
@@ -110,7 +126,7 @@ async def get_answer_and_send_next_question(query: types.CallbackQuery, state: F
 
         message = 'Средние оценки по результатам опроса:\n'
         for character_id, average_rating in average_characters_rating.items():
-            message += f'{character_id}: {average_rating * 100}\n'
+            message += f'{data.get("characters")[character_id]["name"]}: {average_rating * 100}\n'
         message += f'\nПредварительный коэффициент согласованности: {concordance_factor}\n\n'
         message += (f'Опрос окончен. Теперь вам нужно решить, использовать ли ответы в дальнейшем анализе. '
                     f'Если вы вообще не понимали, что вы только что тыкали, то, пожалуйста, выберите "Нет". '
