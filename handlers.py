@@ -11,6 +11,7 @@ from inline_keyboards import (create_character_choice, create_ratio_choice, crea
 from load_all import dp, db
 from states import Poll
 from misc.poll_results_calculator import PollResultsCalculator
+from misc.question_text_creator import create_question_text
 
 
 @dp.message_handler(CommandStart())
@@ -69,19 +70,6 @@ async def process_character_choice(query: types.CallbackQuery, state: FSMContext
     message = query.message
     await state.update_data({'inverse': False}) if query.data == 'left' else await state.update_data({'inverse': True})
     await message.edit_reply_markup(reply_markup=create_ratio_choice())
-
-
-def create_question_text(data):
-    character_a, character_b = data.get('characters_combinations')[data.get('current_question')]
-    return (
-        f'Пара {data.get("current_question") + 1}/{data.get("total_questions")}\n\n'
-        f'{character_a["name"]} - {character_a["height"]} см\n'
-        f'{character_a["url"]}\n'
-        f'{character_a["short_description"]}\n\n'
-        f'{character_b["name"]} - {character_b["height"]} см\n'
-        f'{character_a["url"]}\n'
-        f'{character_b["short_description"]}'
-    ), character_a, character_b
 
 
 @dp.callback_query_handler(lambda c: c.data in ('1', '2', '3', '4', '5', '6', '7', '8', '9'), state=Poll.Polling)
