@@ -74,7 +74,7 @@ async def process_character_choice(query: types.CallbackQuery, state: FSMContext
 
 @dp.callback_query_handler(lambda c: c.data in ('1', '2', '3', '4', '5', '6', '7', '8', '9'), state=Poll.Polling)
 async def get_answer_and_send_next_question(query: types.CallbackQuery, state: FSMContext):
-    await query.message.edit_reply_markup(reply_markup=create_empty())
+    # await query.message.edit_reply_markup(reply_markup=create_empty())
 
     data = await state.get_data()
 
@@ -94,6 +94,8 @@ async def get_answer_and_send_next_question(query: types.CallbackQuery, state: F
                                       reply_markup=create_character_choice(character_a['name'], character_b['name']),
                                       disable_web_page_preview=True)
     else:
+        await query.message.edit_reply_markup(reply_markup=create_empty())
+
         answers = data.get('answers')
         characters_id = data.get('characters').keys()
         calculator = PollResultsCalculator()
