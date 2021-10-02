@@ -6,21 +6,21 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 
 from inline_keyboards import (create_character_choice, create_ratio_choice, create_empty,
-                              create_analysis_usage_choice)
+                              create_analysis_usage_choice, create_start_choice)
 from load_all import dp, db
 from states import Poll
-from utils.poll_results_calculator import PollResultsCalculator
-from utils.question_text_creator import create_question_text
+from .business_service import PollResultsCalculator, create_question_text, create_characters_list_text
 
 
 @dp.message_handler(commands=['start_poll'], state=None)
-async def start_poll(message: types.Message, state: FSMContext):
+async def initialize_poll(message: types.Message, state: FSMContext):
     characters_dict = db.select_characters()
+
+    if not characters_dict:
+        return
 
     character_combinations = list(combinations(characters_dict.values(), 2))
     random.shuffle(character_combinations)
-
-    await Poll.Polling.set()
 
     await state.update_data({'characters': characters_dict})
     await state.update_data({'characters_combinations': character_combinations})
@@ -28,21 +28,29 @@ async def start_poll(message: types.Message, state: FSMContext):
     await state.update_data({'total_questions': len(character_combinations)})
     await state.update_data({'answers': []})
 
-    await message.answer(f'Количество пар: {len(character_combinations)}')
+    message_text = (f'Количество пар: {len(character_combinations)}\n\n'
+                    f'Список пероснажей:\n{create_characters_list_text(characters_dict.values())}')
+
+    await message.answer(message_text, reply_markup=create_start_choice(), disable_web_page_preview=True)
+
+
+@dp.callback_query_handler(text='start', state=None)
+async def set_first_question(query: types.CallbackQuery, state: FSMContext):
+    await Poll.Polling.set()
 
     data = await state.get_data()
-    if data.get('current_question') < data.get('total_questions'):
-        diagonal_answers = []
-        for character_id in characters_dict:
-            diagonal_answers.append((character_id, character_id, 1))
 
-        await state.update_data({'answers': data.get('answers') + [*diagonal_answers]})
+    diagonal_answers = []
+    for character_id in data.get('characters'):
+        diagonal_answers.append((character_id, character_id, 1))
 
-        question_text, character_a, character_b = create_question_text(data)
+    await state.update_data({'answers': data.get('answers') + [*diagonal_answers]})
 
-        await message.answer(question_text,
-                             reply_markup=create_character_choice(character_a['name'], character_b['name']),
-                             disable_web_page_preview=True)
+    question_text, character_a, character_b = create_question_text(data)
+
+    await query.message.answer(question_text,
+                               reply_markup=create_character_choice(character_a['name'], character_b['name']),
+                               disable_web_page_preview=True)
 
 
 @dp.callback_query_handler(text='left', state=Poll.Polling)
@@ -55,8 +63,6 @@ async def process_character_choice(query: types.CallbackQuery, state: FSMContext
 
 @dp.callback_query_handler(lambda c: c.data in ('1', '2', '3', '4', '5', '6', '7', '8', '9'), state=Poll.Polling)
 async def get_answer_and_send_next_question(query: types.CallbackQuery, state: FSMContext):
-    # await query.message.edit_reply_markup(reply_markup=create_empty())
-
     data = await state.get_data()
 
     character_a, character_b = data.get('characters_combinations')[data.get('current_question')]
