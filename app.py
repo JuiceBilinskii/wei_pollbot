@@ -1,5 +1,6 @@
 from aiogram import executor
-from handlers import dp
+from load_all import dp
+import handlers
 
 
 if __name__ == "__main__":

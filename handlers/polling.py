@@ -4,37 +4,18 @@ from itertools import combinations
 
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import CommandStart
 
 from inline_keyboards import (create_character_choice, create_ratio_choice, create_empty,
                               create_analysis_usage_choice)
 from load_all import dp, db
 from states import Poll
-from misc.poll_results_calculator import PollResultsCalculator
-from misc.question_text_creator import create_question_text
-
-
-@dp.message_handler(CommandStart())
-async def register_user(message: types.Message):
-    db.insert_user(message.from_user.id, message.from_user.first_name, message.from_user.username)
-    start_text = (f'Теперь можете приступить к прохождению опроса. Вам предстоит выполнить ряд '
-                  f'попарных сравнений между персонажами на предмет оценки их относительной силы. '
-                  f'Подразумевается, что сравнивается не только физическая сила в самом непосредственном '
-                  f'смысле, а берется во внимание и ряд других качеств, например, степень влияния '
-                  f'персонажа на сюжет.')
-    await message.answer(start_text)
+from utils.poll_results_calculator import PollResultsCalculator
+from utils.question_text_creator import create_question_text
 
 
 @dp.message_handler(commands=['start_poll'], state=None)
 async def start_poll(message: types.Message, state: FSMContext):
-    # characters_tuple = db.select_characters()
-    characters_dict = {character_tuple[0]: {
-        'id': character_tuple[0],
-        'name': character_tuple[1],
-        'height': character_tuple[2],
-        'short_description': character_tuple[3],
-        'url': character_tuple[4],
-    } for character_tuple in db.select_characters()}
+    characters_dict = db.select_characters()
 
     character_combinations = list(combinations(characters_dict.values(), 2))
     random.shuffle(character_combinations)

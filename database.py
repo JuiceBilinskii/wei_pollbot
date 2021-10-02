@@ -18,7 +18,7 @@ class DatabaseConnection:
         return True
 
 
-class DatabaseQueries:
+class DatabaseQueriesWrapper:
     SELECT_CHARACTERS = """SELECT * FROM characters ORDER BY id ASC"""
 
     INSERT_USER_WITH_USERNAME = (
@@ -52,7 +52,16 @@ class DatabaseQueries:
             with connection.cursor() as cursor:
                 cursor.execute(self.SELECT_CHARACTERS)
                 result = cursor.fetchall()
-                return result
+
+                characters_dict = {character_tuple[0]: {
+                    'id': character_tuple[0],
+                    'name': character_tuple[1],
+                    'height': character_tuple[2],
+                    'short_description': character_tuple[3],
+                    'url': character_tuple[4],
+                } for character_tuple in result}
+
+                return characters_dict
     
     def insert_user(self, _id, first_name, username=None):
         with DatabaseConnection(**self.connect_information) as connection:
