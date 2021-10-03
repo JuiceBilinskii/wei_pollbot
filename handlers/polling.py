@@ -32,7 +32,11 @@ async def initialize_poll(message: types.Message, state: FSMContext):
     await state.update_data({'answers': []})
 
     message_text = (f'Количество пар: {len(character_combinations)}\n\n'
-                    f'Список пероснажей:\n{create_characters_list_text(characters_dict.values())}')
+                    f'Список пероснажей:\n{create_characters_list_text(characters_dict.values())}'
+                    f'\n\n'
+                    f'Для каждой пары персонажей вам нужно выбрать относительную оценку силы от 1 до 9 '
+                    f'в пользу одного из них. 1 означает, что персонажи равны между собой, а 9, соотвественно, '
+                    f'означает, что один из персонажей значительно довлеет над другим')
 
     await message.answer(message_text, reply_markup=create_start_choice(), disable_web_page_preview=True)
 
