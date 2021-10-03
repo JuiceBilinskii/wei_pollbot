@@ -3,7 +3,7 @@ from .question_text_creation import create_question_text
 from .poll_results_calculation import PollResultsCalculator
 
 
-async def receive_ratio(ratio_choice, state: FSMContext):
+async def receive_answer(ratio_choice, state: FSMContext):
     data = await state.get_data()
 
     character_a, character_b = data.get('characters_combinations')[data.get('current_question')]

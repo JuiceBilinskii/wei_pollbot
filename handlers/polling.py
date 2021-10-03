@@ -8,8 +8,8 @@ from aiogram.dispatcher import FSMContext
 from inline_keyboards import (create_character_choice, create_ratio_choice, create_empty,
                               create_analysis_usage_choice, create_start_choice)
 
-from .business_service import (create_characters_list_text,
-                               receive_ratio, create_next_question, complete_poll)
+from .business_service import (create_characters_list_text, create_post_poll_question_text,
+                               receive_answer, create_next_question, complete_poll)
 
 from load_all import dp, db
 from states import Poll
@@ -67,7 +67,7 @@ async def handle_character_choice(query: types.CallbackQuery, state: FSMContext)
 
 @dp.callback_query_handler(lambda c: c.data in ('1', '2', '3', '4', '5', '6', '7', '8', '9'), state=Poll.Polling)
 async def handle_characters_ratio_choice(query: types.CallbackQuery, state: FSMContext):
-    await receive_ratio(query.data, state)
+    await receive_answer(query.data, state)
 
     data = await state.get_data()
     if data.get('current_question') < data.get('total_questions'):
@@ -76,9 +76,10 @@ async def handle_characters_ratio_choice(query: types.CallbackQuery, state: FSMC
                                       reply_markup=create_character_choice(character_a['name'], character_b['name']),
                                       disable_web_page_preview=True)
     else:
-        complete_message_text = await complete_poll(data, state)
+        question_text = create_post_poll_question_text(data)
+        await query.message.edit_text(question_text, disable_web_page_preview=True, reply_markup=create_empty())
 
-        await query.message.edit_reply_markup(reply_markup=create_empty())
+        complete_message_text = await complete_poll(data, state)
         await query.message.answer(complete_message_text, reply_markup=create_analysis_usage_choice())
 
 
