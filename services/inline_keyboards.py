@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
-def create_start_choice():
+def create_start_poll_keyboard():
     names_and_data = (
         ('Начать опрос', 'start'),
     )
@@ -12,7 +12,7 @@ def create_start_choice():
     return character_choice
 
 
-def create_character_choice(first_character, second_character):
+def create_character_choice_keyboard(first_character, second_character):
     names_and_data = (
         (first_character, 'left'),
         (second_character, 'right'),

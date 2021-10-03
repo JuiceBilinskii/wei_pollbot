@@ -1,3 +1,3 @@
 from . import start
-from . import polling
+from . import conduct_poll
 from . import display_characters

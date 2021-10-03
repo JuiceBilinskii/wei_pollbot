@@ -1,4 +1,3 @@
-from .characters_list import create_characters_list_text
 from .results_calculator import PollResultsCalculator
 from .question_text import create_question_text, create_post_poll_question_text
 from .poll_actions import receive_answer, create_next_question, complete_poll

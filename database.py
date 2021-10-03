@@ -53,15 +53,7 @@ class DatabaseQueriesWrapper:
                 cursor.execute(self.SELECT_CHARACTERS)
                 result = cursor.fetchall()
 
-                characters_dict = {character_tuple[0]: {
-                    'id': character_tuple[0],
-                    'name': character_tuple[1],
-                    'height': character_tuple[2],
-                    'short_description': character_tuple[3],
-                    'url': character_tuple[4],
-                } for character_tuple in result}
-
-                return characters_dict
+                return result
     
     def insert_user(self, _id, first_name, username=None):
         with DatabaseConnection(**self.connect_information) as connection:
