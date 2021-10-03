@@ -7,9 +7,12 @@ from aiogram.dispatcher import FSMContext
 
 from inline_keyboards import (create_character_choice, create_ratio_choice, create_empty,
                               create_analysis_usage_choice, create_start_choice)
+
+from .business_service import (create_characters_list_text,
+                               receive_ratio, create_next_question, complete_poll)
+
 from load_all import dp, db
 from states import Poll
-from .business_service import PollResultsCalculator, create_question_text, create_characters_list_text
 
 
 @dp.message_handler(commands=['start_poll'], state=None)
@@ -35,7 +38,7 @@ async def initialize_poll(message: types.Message, state: FSMContext):
 
 
 @dp.callback_query_handler(text='start', state=None)
-async def set_first_question(query: types.CallbackQuery, state: FSMContext):
+async def handle_first_question(query: types.CallbackQuery, state: FSMContext):
     await Poll.Polling.set()
 
     data = await state.get_data()
@@ -46,8 +49,9 @@ async def set_first_question(query: types.CallbackQuery, state: FSMContext):
 
     await state.update_data({'answers': data.get('answers') + [*diagonal_answers]})
 
-    question_text, character_a, character_b = create_question_text(data)
+    question_text, character_a, character_b = await create_next_question(data)
 
+    await query.message.edit_reply_markup(reply_markup=create_empty())
     await query.message.answer(question_text,
                                reply_markup=create_character_choice(character_a['name'], character_b['name']),
                                disable_web_page_preview=True)
@@ -55,55 +59,32 @@ async def set_first_question(query: types.CallbackQuery, state: FSMContext):
 
 @dp.callback_query_handler(text='left', state=Poll.Polling)
 @dp.callback_query_handler(text='right', state=Poll.Polling)
-async def process_character_choice(query: types.CallbackQuery, state: FSMContext):
+async def handle_character_choice(query: types.CallbackQuery, state: FSMContext):
     message = query.message
     await state.update_data({'inverse': False}) if query.data == 'left' else await state.update_data({'inverse': True})
     await message.edit_reply_markup(reply_markup=create_ratio_choice())
 
 
 @dp.callback_query_handler(lambda c: c.data in ('1', '2', '3', '4', '5', '6', '7', '8', '9'), state=Poll.Polling)
-async def get_answer_and_send_next_question(query: types.CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-
-    character_a, character_b = data.get('characters_combinations')[data.get('current_question')]
-
-    ratio = 1 / int(query.data) if data.get('inverse', False) else int(query.data)
-
-    answer_pair = (character_a['id'], character_b['id'], ratio), (character_b['id'], character_a['id'], 1 / ratio)
-
-    await state.update_data({'answers': data.get('answers') + [*answer_pair]})
-    await state.update_data({'current_question': data.get('current_question') + 1})
+async def handle_characters_ratio_choice(query: types.CallbackQuery, state: FSMContext):
+    await receive_ratio(query.data, state)
 
     data = await state.get_data()
     if data.get('current_question') < data.get('total_questions'):
-        question_text, character_a, character_b = create_question_text(data)
+        question_text, character_a, character_b = await create_next_question(data)
         await query.message.edit_text(question_text,
                                       reply_markup=create_character_choice(character_a['name'], character_b['name']),
                                       disable_web_page_preview=True)
     else:
+        complete_message_text = await complete_poll(data, state)
+
         await query.message.edit_reply_markup(reply_markup=create_empty())
-
-        answers = data.get('answers')
-        characters_id = data.get('characters').keys()
-        calculator = PollResultsCalculator()
-        average_characters_rating, concordance_factor = calculator.calculate_poll_results(answers, characters_id)
-
-        await state.update_data({'average_characters_rating': average_characters_rating,
-                                 'concordance_factor': concordance_factor})
-
-        message = 'Средние оценки по результатам опроса:\n'
-        for character_id, average_rating in average_characters_rating.items():
-            message += f'{data.get("characters")[character_id]["name"]}: {average_rating * 100}\n'
-        message += f'\nПредварительный коэффициент согласованности: {concordance_factor}\n\n'
-        message += (f'Опрос окончен. Теперь вам нужно решить, использовать ли ответы в дальнейшем анализе. '
-                    f'Если вы вообще не понимали, что вы только что тыкали, то, пожалуйста, выберите "Нет". '
-                    f'Если же вы настроены серьезно, то отвечайте "Да".')
-        await query.message.answer(message, reply_markup=create_analysis_usage_choice())
+        await query.message.answer(complete_message_text, reply_markup=create_analysis_usage_choice())
 
 
 @dp.callback_query_handler(text='yes', state=Poll.Polling)
 @dp.callback_query_handler(text='no', state=Poll.Polling)
-async def process_analysis_usage(query: types.CallbackQuery, state: FSMContext):
+async def handle_analysis_usage_choice(query: types.CallbackQuery, state: FSMContext):
     await query.message.edit_reply_markup(reply_markup=create_empty())
     data = await state.get_data()
 
@@ -118,14 +99,14 @@ async def process_analysis_usage(query: types.CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query_handler(text='stop', state=Poll.Polling)
-async def process_stop_poll(query: types.CallbackQuery, state: FSMContext):
+async def handle_stop_choice(query: types.CallbackQuery, state: FSMContext):
     await query.message.edit_reply_markup(reply_markup=create_empty())
     await query.message.answer('Вы прервали прохождение опроса.')
     await state.finish()
 
 
 @dp.callback_query_handler(text='cancel', state=Poll.Polling)
-async def process_choice_cancel(query: types.CallbackQuery, state: FSMContext):
+async def handle_cancel_choice(query: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character_a, character_b = data.get('characters_combinations')[data.get('current_question')]
     await query.message.edit_reply_markup(reply_markup=create_character_choice(character_a['name'],
