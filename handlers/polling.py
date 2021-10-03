@@ -5,14 +5,14 @@ from itertools import combinations
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 
-from inline_keyboards import (create_character_choice, create_ratio_choice, create_empty,
-                              create_analysis_usage_choice, create_start_choice)
+from services.inline_keyboards import (create_character_choice, create_ratio_choice, create_empty,
+                                       create_analysis_usage_choice, create_start_choice)
 
-from .business_service import (create_characters_list_text, create_post_poll_question_text,
-                               receive_answer, create_next_question, complete_poll)
+from services import (create_characters_list_text, create_post_poll_question_text,
+                      receive_answer, create_next_question, complete_poll)
 
 from load_all import dp, db
-from states import Poll
+from services.states import Poll
 
 
 @dp.message_handler(commands=['start_poll'], state=None)

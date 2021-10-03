@@ -1,5 +1,5 @@
 from aiogram import types
-from .business_service import create_characters_list_text
+from services import create_characters_list_text
 
 from load_all import dp, db
 

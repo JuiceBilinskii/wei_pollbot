@@ -1,6 +1,6 @@
 from aiogram.dispatcher import FSMContext
-from .question_text_creation import create_question_text
-from .poll_results_calculation import PollResultsCalculator
+from .question_text import create_question_text
+from .results_calculator import PollResultsCalculator
 
 
 async def receive_answer(ratio_choice, state: FSMContext):
