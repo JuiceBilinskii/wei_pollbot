@@ -15,15 +15,16 @@ def create_start_choice():
 def create_character_choice(first_character, second_character):
     names_and_data = (
         (first_character, 'left'),
-        ('Равны', '1'),
         (second_character, 'right'),
     )
+    equal = ('Равны', '1')
     terminate = ('Прервать', 'stop')
 
     first_row = (InlineKeyboardButton(text, callback_data=data) for text, data in names_and_data)
-    second_row = InlineKeyboardButton(terminate[0], callback_data=terminate[1])
+    second_row = InlineKeyboardButton(equal[0], callback_data=equal[1])
+    third_row = InlineKeyboardButton(terminate[0], callback_data=terminate[1])
 
-    character_choice = InlineKeyboardMarkup(inline_keyboard=[[*first_row], [second_row]])
+    character_choice = InlineKeyboardMarkup(inline_keyboard=[[*first_row], [second_row], [third_row]])
     return character_choice
 
 
