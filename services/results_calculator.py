@@ -90,4 +90,9 @@ class PollResultsCalculator:
     def __calculate_randomization_index(self, number_of_characters: int) -> float:
         """Defines randomization index for certain number of characters"""
 
-        return -0.4573 + 0.9034 * math.log(number_of_characters)
+        return -0.2024 + 0.7227 * math.log(number_of_characters)
+
+
+if __name__ == '__main__':
+    calculator = PollResultsCalculator
+    print(calculator._PollResultsCalculator__calculate_randomization_index(calculator, 18))
